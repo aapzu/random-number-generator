@@ -1,14 +1,20 @@
 import express, { ErrorRequestHandler, Request } from 'express'
 import path from 'path'
 import { DateTime } from 'luxon'
-import { generateRandomNumber } from './randomNumberGenerator'
 import ejs from 'ejs'
 
-const numberSvgTemplatePath = path.resolve(__dirname, 'templates/numberSvg.ejs')
+const numberSvgTemplatePath = path.resolve(__dirname, '../templates/numberSvg.ejs')
 
 const port = process.env.PORT || 3333
 
 const app = express()
+
+const generateRandomNumber = (from: number, to: number) => {
+  if (from > to) {
+    throw new Error(`from cannot be bigger than to! from: ${from}, to: ${to}`)
+  }
+  return Math.floor(Math.random() * (to + 1)) + from
+}
 
 const getJson = (from: number, to: number) => ({
   success: true,
