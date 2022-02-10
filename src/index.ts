@@ -95,3 +95,5 @@ app.use(errorHandler)
 app.listen(port, () => {
   console.log(`App listening on port ${port}`)
 })
+
+export default app
