@@ -5,9 +5,9 @@ import ejs from 'ejs'
 
 const numberSvgTemplatePath = path.resolve(__dirname, '../templates/numberSvg.ejs')
 
-const port = process.env.PORT || 3333
-
 const app = express()
+
+app.set('port', process.env.PORT || 3333)
 
 const generateRandomNumber = (from: number, to: number) => {
   if (from > to) {
@@ -92,8 +92,8 @@ const errorHandler: ErrorRequestHandler = (err: Error, _req, res, _next) => {
 }
 app.use(errorHandler)
 
-app.listen(port, () => {
-  console.log(`App listening on port ${port}`)
+app.listen(app.get('port'), () => {
+  console.log(`App listening on port ${app.get('port')}`)
 })
 
 export default app
