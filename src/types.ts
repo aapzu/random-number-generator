@@ -8,8 +8,3 @@ export enum SupportedImageFormat {
   Png = 'png',
   Jpeg = 'jpeg'
 }
-
-export enum Style {
-  Light = 'light',
-  Dark = 'dark'
-}

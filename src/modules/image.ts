@@ -1,6 +1,6 @@
 import ejs from 'ejs'
 import path from 'path'
-import { Style, SupportedImageFormat } from '../types'
+import { SupportedImageFormat } from '../types'
 import { ApiError } from '../utils/ApiError'
 import { svgToJpg, svgToPng } from '../utils/convertImage'
 

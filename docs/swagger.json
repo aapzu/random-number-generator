@@ -1,0 +1,265 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "This is an app to create and embed random data",
+    "version": "1.0.0",
+    "title": "Random Number Generator",
+    "contact": {
+      "email": "aapeli.haanpuu@iki.fi"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "host": "random-number-generator-aapzu.vercel.app",
+  "basePath": "/",
+  "schemes": ["https", "http"],
+  "paths": {
+    "/json": {
+      "get": {
+        "summary": "Get random number in json",
+        "description": "Get random number in json",
+        "operationId": "getJson",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "min",
+            "in": "query",
+            "description": "Minimum value of the random number",
+            "required": false,
+            "type": "number",
+            "default": 0
+          },
+          {
+            "name": "max",
+            "in": "query",
+            "description": "Maximum value of the random number",
+            "required": false,
+            "type": "number",
+            "default": 10
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully generated image"
+          },
+          "400": {
+            "description": "Invalid parameters",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/image": {
+      "get": {
+        "summary": "Get random number as an image",
+        "description": "Get random number as an image",
+        "operationId": "getImage",
+        "produces": ["image/svg+xml", "image/png", "image/jpeg"],
+        "parameters": [
+          {
+            "name": "min",
+            "in": "query",
+            "description": "Minimum value of the random number",
+            "required": false,
+            "type": "number",
+            "default": 0
+          },
+          {
+            "name": "max",
+            "in": "query",
+            "description": "Maximum value of the random number",
+            "required": false,
+            "type": "number",
+            "default": 10
+          },
+          {
+            "name": "width",
+            "in": "query",
+            "description": "Width of the produced image",
+            "required": false,
+            "type": "number",
+            "default": 500
+          },
+          {
+            "name": "height",
+            "in": "query",
+            "description": "Height of the produced image",
+            "required": false,
+            "type": "number",
+            "default": 500
+          },
+          {
+            "name": "showUpdatedDate",
+            "in": "query",
+            "description": "If the image should show the date when it was last updated",
+            "required": false,
+            "type": "boolean",
+            "default": false
+          },
+          {
+            "name": "imageFormat",
+            "in": "query",
+            "description": "Format of the returned image",
+            "required": false,
+            "type": "string",
+            "enum": ["jpeg", "png", "svg"],
+            "default": "jpeg"
+          },
+          {
+            "name": "font",
+            "in": "query",
+            "description": "Font to use in the output. Must be a system font.",
+            "required": false,
+            "type": "string",
+            "default": "Arial"
+          },
+          {
+            "name": "fontColor",
+            "in": "query",
+            "description": "Color of the font",
+            "required": false,
+            "type": "string",
+            "default": "#333"
+          },
+          {
+            "name": "bgColor",
+            "in": "query",
+            "description": "Background color",
+            "required": false,
+            "type": "string",
+            "default": "#fff"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully generated random number",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "number": {
+                  "type": "integer"
+                },
+                "success": {
+                  "type": "boolean"
+                },
+                "updatedDate": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/imageFromList": {
+      "get": {
+        "summary": "Get random item from a list as an image",
+        "description": "Get random item from a list as an image",
+        "operationId": "getImageFromList",
+        "produces": ["image/svg+xml", "image/png", "image/jpeg"],
+        "parameters": [
+          {
+            "name": "options",
+            "in": "query",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "width",
+            "in": "query",
+            "description": "Width of the produced image",
+            "required": false,
+            "type": "number",
+            "default": 500
+          },
+          {
+            "name": "height",
+            "in": "query",
+            "description": "Height of the produced image",
+            "required": false,
+            "type": "number",
+            "default": 500
+          },
+          {
+            "name": "showUpdatedDate",
+            "in": "query",
+            "description": "If the image should show the date when it was last updated",
+            "required": false,
+            "type": "boolean",
+            "default": false
+          },
+          {
+            "name": "imageFormat",
+            "in": "query",
+            "description": "Format of the returned image",
+            "required": false,
+            "type": "string",
+            "enum": ["jpeg", "png", "svg"],
+            "default": "jpeg"
+          },
+          {
+            "name": "font",
+            "in": "query",
+            "description": "Font to use in the output. Must be a system font.",
+            "required": false,
+            "type": "string",
+            "default": "Arial"
+          },
+          {
+            "name": "fontColor",
+            "in": "query",
+            "description": "Color of the font",
+            "required": false,
+            "type": "string",
+            "default": "#333"
+          },
+          {
+            "name": "bgColor",
+            "in": "query",
+            "description": "Background color",
+            "required": false,
+            "type": "string",
+            "default": "#fff"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully generated image"
+          },
+          "400": {
+            "description": "Invalid parameters",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "ErrorResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        },
+        "error": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
