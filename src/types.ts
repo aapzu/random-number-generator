@@ -8,3 +8,10 @@ export enum SupportedImageFormat {
   Png = 'png',
   Jpeg = 'jpeg'
 }
+
+export enum SupportedFont {
+  Roboto = 'Roboto',
+  RobotoSerif = 'Roboto Serif',
+  RobotoMono = 'Roboto Mono',
+  RobotoSlab = 'Roboto Slab'
+}

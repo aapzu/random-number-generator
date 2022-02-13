@@ -6,9 +6,9 @@ import { ApiError } from './utils/ApiError'
 import { generateImage } from './modules/image'
 import { parseBoolean, parseEnum, parseNumber, parseString, parseStringList } from './utils/queryParsers'
 import { generateRandomNumber } from './modules/randomNumberGenerator'
-import { SupportedImageFormat } from './types'
+import { SupportedImageFormat, SupportedFont } from './types'
 
-import swaggerDocs from '../docs/swagger.json'
+import swaggerDocs from '../docs/swaggerDoc'
 
 const getCommonParams = (query: Query) => {
   const min = parseNumber(query.min, 'min') || 0
@@ -19,7 +19,7 @@ const getCommonParams = (query: Query) => {
   const imageFormat =
     (parseEnum(query.imageFormat, SupportedImageFormat, 'imageFormat') as SupportedImageFormat) ||
     SupportedImageFormat.Png
-  const font = parseString(query.font, 'font') || 'Arial'
+  const font = (parseEnum(query.font, SupportedFont, 'font') as SupportedFont) || SupportedFont.Roboto
   const fontColor = parseString(query.fontColor, 'fontColor') || '#333'
   const bgColor = parseString(query.bgColor, 'bgColor') || '#fff'
   return { min, max, width, height, showUpdatedDate, font, imageFormat, fontColor, bgColor }

@@ -1,13 +1,27 @@
 import { render } from '@resvg/resvg-js'
+import { optimize } from 'svgo'
 import jimp from 'jimp'
+import path from 'path'
+
+export const optimizeSvg = async (svgString: string) => {
+  const optimizeResult = await optimize(svgString)
+  if ('data' in optimizeResult) {
+    return optimizeResult.data
+  } else {
+    throw optimizeResult.modernError
+  }
+}
 
 export const svgToPng = async (svgString: string) => {
-  return render(svgString, {
+  const optimizedSvg = await optimizeSvg(svgString)
+  return render(optimizedSvg, {
     fitTo: {
       mode: 'original'
     },
     font: {
-      loadSystemFonts: true // It will be faster to disable loading system fonts.
+      fontDirs: [path.resolve(__dirname, '../../public/fonts')],
+      defaultFontFamily: 'Roboto Mono',
+      loadSystemFonts: false
     },
     dpi: 1000
   })
