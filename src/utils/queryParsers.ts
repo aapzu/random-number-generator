@@ -1,4 +1,5 @@
 import { Query } from 'express-serve-static-core'
+import { SupportedFont, SupportedImageFormat } from '../types'
 import { ApiError } from './ApiError'
 
 type Parser<T> = {
@@ -82,4 +83,19 @@ export const parseString: Parser<string> = (value, name, allowMissing = true) =>
   } else {
     throw new ApiError(`Query parameter ${name} must be a string`, 400)
   }
+}
+
+export const getCommonQueryParams = (query: Query) => {
+  const min = parseNumber(query.min, 'min') || 0
+  const max = parseNumber(query.max, 'max') || min + 10
+  const width = parseNumber(query.width, 'width') || 500
+  const height = parseNumber(query.height, 'height') || 500
+  const showUpdatedDate = parseBoolean(query.showUpdatedDate, 'showUpdatedDate')
+  const imageFormat =
+    (parseEnum(query.imageFormat, SupportedImageFormat, 'imageFormat') as SupportedImageFormat) ||
+    SupportedImageFormat.Png
+  const font = (parseEnum(query.font, SupportedFont, 'font') as SupportedFont) || SupportedFont.Roboto
+  const fontColor = parseString(query.fontColor, 'fontColor') || '#333'
+  const bgColor = parseString(query.bgColor, 'bgColor') || '#fff'
+  return { min, max, width, height, showUpdatedDate, font, imageFormat, fontColor, bgColor }
 }
