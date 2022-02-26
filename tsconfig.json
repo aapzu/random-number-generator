@@ -13,5 +13,5 @@
       "*": ["node_modules/*"]
     }
   },
-  "include": ["src/**/*", "api/**/*"]
+  "include": ["src/common.d.ts", "src/**/*", "api/**/*"]
 }

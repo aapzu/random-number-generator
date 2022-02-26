@@ -4,12 +4,13 @@ import jimp from 'jimp'
 import path from 'path'
 
 export const optimizeSvg = async (svgString: string) => {
-  const optimizeResult = await optimize(svgString)
-  if ('data' in optimizeResult) {
-    return optimizeResult.data
-  } else {
-    throw optimizeResult.modernError
-  }
+  // const optimizeResult = await optimize(svgString)
+  // if ('data' in optimizeResult) {
+  //   return optimizeResult.data
+  // } else {
+  //   throw optimizeResult.modernError
+  // }
+  return svgString
 }
 
 export const svgToPng = async (svgString: string) => {
