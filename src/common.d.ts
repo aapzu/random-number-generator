@@ -1,16 +1,12 @@
-import * as Express from 'express'
-import { DateTime } from 'luxon'
-import { generateRandomNumber } from './modules/randomNumberGenerator'
+import { RandomListItemJsonResponse, RandomListOrderJsonResponse, RandomNumberJsonResponse } from './types'
 
 declare module 'express-serve-static-core' {
-  interface Request extends Express.Request {
+  interface Request {
     session: {
       expires: number
-      randomObject: {
-        success: boolean
-        number: number
-        updatedDate: string
-      }
+      randomNumberObject?: RandomNumberJsonResponse
+      randomListItemObject?: RandomListItemJsonResponse
+      randomListOrderObject?: RandomListOrderJsonResponse
     }
   }
 }

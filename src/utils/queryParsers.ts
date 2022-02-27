@@ -2,6 +2,7 @@ import { Query } from 'express-serve-static-core'
 import parse from 'parse-duration'
 import { SupportedFont, SupportedImageFormat } from '../types'
 import { ApiError } from './ApiError'
+import { pick } from 'lodash'
 
 type Parser<T> = {
   (value: Query[string], name: string, allowMissing?: boolean): T | undefined
@@ -62,13 +63,12 @@ export const parseStringList: Parser<string[]> = (value, name, allowMissing = tr
   }
 }
 
-type EnumParser = {
-  (value: Query[string], enumRef: Record<string, string>, name: string): string | undefined
-  (value: Query[string], enumRef: Record<string, string>, name: string, allowMissing: true): string | undefined
-  (value: Query[string], enumRef: Record<string, string>, name: string, allowMissing: false): string
-}
-
-export const parseEnum: EnumParser = (value, enumRef, name, allowMissing: boolean = true) => {
+export function parseEnum<E extends Record<string, string>>(
+  value: Query[string],
+  enumRef: E,
+  name: string,
+  allowMissing?: boolean
+): E[keyof E] {
   const errorString = `Query parameter ${name} must be one of ${Object.values(enumRef).join(', ')}`
   const valueAsString = parseBaseString(value, name, errorString, allowMissing)
   if (typeof valueAsString === 'undefined') {
@@ -77,7 +77,7 @@ export const parseEnum: EnumParser = (value, enumRef, name, allowMissing: boolea
   if (!Object.values(enumRef).includes(valueAsString)) {
     throw new ApiError(errorString, 400)
   }
-  return valueAsString
+  return valueAsString as E[keyof E]
 }
 
 export const parseDuration: Parser<number> = (value, name, allowMissing = true) => {
@@ -93,18 +93,60 @@ export const parseDuration: Parser<number> = (value, name, allowMissing = true) 
   return duration
 }
 
-export const getCommonQueryParams = (query: Query) => {
-  const min = parseNumber(query.min, 'min') || 0
-  const max = parseNumber(query.max, 'max') || min + 10
-  const width = parseNumber(query.width, 'width') || 500
-  const height = parseNumber(query.height, 'height') || width
-  const showUpdatedDate = parseBoolean(query.showUpdatedDate, 'showUpdatedDate')
-  const clearCache = parseBoolean(query.clearCache, 'clearCache')
+export type QueryParams = {
+  clearCache?: boolean
+  min?: number
+  max?: number
+  width?: number
+  height?: number
+  showUpdatedDate?: boolean
+  font?: SupportedFont
+  imageFormat?: SupportedImageFormat
+  fontColor?: string
+  bgColor?: string
+  items?: Array<string>
+  delimiter?: string
+  cacheTime?: string
+}
+
+export const parseQueryParams = <K extends (keyof QueryParams)[]>(
+  query: Query,
+  keys: K
+): Required<Pick<QueryParams, K[number]>> => {
+  const test = (k: keyof QueryParams) => keys.includes(k) || undefined
+
+  const min = test('min') && (parseNumber(query.min, 'min') || 0)
+  const max = test('max') && (parseNumber(query.max, 'max') || min + 10)
+  const width = test('width') && (parseNumber(query.width, 'width') || 500)
+  const height = test('height') && (parseNumber(query.height, 'height') || width)
+  const showUpdatedDate = test('showUpdatedDate') && parseBoolean(query.showUpdatedDate, 'showUpdatedDate')
+  const clearCache = test('clearCache') && parseBoolean(query.clearCache, 'clearCache')
   const imageFormat =
-    (parseEnum(query.imageFormat, SupportedImageFormat, 'imageFormat') as SupportedImageFormat) ||
-    SupportedImageFormat.Png
-  const font = (parseEnum(query.font, SupportedFont, 'font') as SupportedFont) || SupportedFont.Roboto
-  const fontColor = parseString(query.fontColor, 'fontColor') || '#333'
-  const bgColor = parseString(query.bgColor, 'bgColor') || '#fff'
-  return { clearCache, min, max, width, height, showUpdatedDate, font, imageFormat, fontColor, bgColor }
+    test('imageFormat') &&
+    (parseEnum(query.imageFormat, SupportedImageFormat, 'imageFormat') || SupportedImageFormat.Png)
+  const font = test('font') && (parseEnum(query.font, SupportedFont, 'font') || SupportedFont.Roboto)
+  const fontColor = test('fontColor') && (parseString(query.fontColor, 'fontColor') || '#333')
+  const bgColor = test('bgColor') && (parseString(query.bgColor, 'bgColor') || '#fff')
+  const items = test('items') && parseStringList(query.items, 'items', false)
+  const delimiter = test('delimiter') && (parseString(query.delimiter, 'delimiter', true) || ', ')
+  const cacheTime = test('cacheTime') && parseDuration(query.cacheTime, 'cacheTime', true)
+  return pick(
+    {
+      clearCache,
+      min,
+      max,
+      width,
+      height,
+      showUpdatedDate,
+      font,
+      imageFormat,
+      fontColor,
+      bgColor,
+      items,
+      delimiter,
+      cacheTime
+    },
+    keys
+    // TODO: fix this
+  ) as unknown as Required<Pick<QueryParams, K[number]>>
 }

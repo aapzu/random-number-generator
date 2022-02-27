@@ -4,16 +4,15 @@ import jimp from 'jimp'
 import path from 'path'
 
 export const optimizeSvg = async (svgString: string) => {
-  // const optimizeResult = await optimize(svgString)
-  // if ('data' in optimizeResult) {
-  //   return optimizeResult.data
-  // } else {
-  //   throw optimizeResult.modernError
-  // }
-  return svgString
+  const optimizeResult = await optimize(svgString)
+  if ('data' in optimizeResult) {
+    return optimizeResult.data
+  } else {
+    throw optimizeResult.modernError
+  }
 }
 
-export const svgToPng = async (svgString: string) => {
+export const svgToPng = async (svgString: string, bgColor: string) => {
   const optimizedSvg = await optimizeSvg(svgString)
   return render(optimizedSvg, {
     fitTo: {
@@ -24,6 +23,7 @@ export const svgToPng = async (svgString: string) => {
       defaultFontFamily: 'Roboto Mono',
       loadSystemFonts: false
     },
+    background: bgColor,
     dpi: 1000
   })
 }
@@ -33,4 +33,4 @@ export const pngToJpg = async (source: Buffer): Promise<Buffer> => {
   return img.getBufferAsync(jimp.MIME_PNG)
 }
 
-export const svgToJpg = async (svgString: string) => pngToJpg(await svgToPng(svgString))
+export const svgToJpg = async (svgString: string, bgColor: string) => pngToJpg(await svgToPng(svgString, bgColor))

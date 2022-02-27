@@ -21,9 +21,9 @@ type GenerateImageOptions = {
 export const generateImage = async ({ imageFormat, ...opts }: GenerateImageOptions): Promise<Buffer> => {
   const svgString = await ejs.renderFile(numberSvgTemplatePath, { ...opts }, {})
   if (imageFormat === SupportedImageFormat.Png) {
-    return svgToPng(svgString)
+    return svgToPng(svgString, opts.bgColor)
   } else if (imageFormat === SupportedImageFormat.Jpeg) {
-    return await svgToJpg(svgString)
+    return await svgToJpg(svgString, opts.bgColor)
   } else if (imageFormat === SupportedImageFormat.Svg) {
     return Buffer.from(await optimizeSvg(svgString), 'utf-8')
   } else {

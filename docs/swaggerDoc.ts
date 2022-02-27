@@ -1,8 +1,50 @@
 import { title } from 'case'
 import pjson from '../package.json'
-import { SupportedFont, SupportedImageFormat } from '../src/types'
+import {
+  RandomListItemJsonResponse,
+  RandomListOrderJsonResponse,
+  RandomNumberJsonResponse,
+  SupportedFont,
+  SupportedImageFormat
+} from '../src/types'
+import { QueryParams } from '../src/utils/queryParsers'
 
-const parameters = {
+type SwaggerTypeObject<T extends string> = { type: T; [key: string]: unknown }
+
+type SwaggerString = SwaggerTypeObject<'string'>
+type SwaggerBoolean = SwaggerTypeObject<'boolean'>
+type SwaggerNumber = SwaggerTypeObject<'number'>
+type SwaggerUnknown = SwaggerTypeObject<string>
+
+type SwaggerArray<T extends Array<any>> = SwaggerTypeObject<'array'> & {
+  items: T extends Array<infer U> ? SwaggerSchema<U> : SwaggerSchema<any>
+}
+
+type SwaggerObject<T extends Record<string, unknown>> = SwaggerTypeObject<'object'> & {
+  properties: {
+    [K in keyof T]: SwaggerSchema<T[K]>
+  }
+}
+
+type SwaggerSchema<T> = T extends Array<any>
+  ? SwaggerArray<T>
+  : T extends Record<string, any>
+  ? SwaggerObject<T>
+  : T extends string
+  ? SwaggerString
+  : T extends boolean
+  ? SwaggerBoolean
+  : T extends number
+  ? SwaggerNumber
+  : SwaggerUnknown
+
+type QueryParameters = {
+  [K in keyof QueryParams]: { name: K; in: 'query'; description: string; required: boolean } & SwaggerSchema<
+    QueryParams[K]
+  >
+}
+
+const parameters: QueryParameters = {
   min: {
     name: 'min',
     in: 'query',
@@ -18,6 +60,13 @@ const parameters = {
     required: false,
     type: 'number',
     default: 10
+  },
+  cacheTime: {
+    name: 'cacheTime',
+    in: 'query',
+    description: 'Time to cache the current random number. Given in human readable duration format (eg. 1min, 2d)',
+    required: false,
+    type: 'string'
   },
   width: {
     name: 'width',
@@ -76,17 +125,121 @@ const parameters = {
     required: false,
     type: 'string',
     default: '#fff'
+  },
+  items: {
+    name: 'items',
+    description: 'List items',
+    required: true,
+    in: 'query',
+    type: 'array',
+    items: {
+      type: 'string'
+    }
+  },
+  clearCache: {
+    name: 'clearCache',
+    in: 'query',
+    description: 'Force cache clear',
+    required: false,
+    type: 'boolean',
+    default: false
+  },
+  delimiter: {
+    name: 'delimiter',
+    in: 'query',
+    description: 'Delimiter of the list items',
+    required: false,
+    type: 'string',
+    default: ', '
   }
-} as const
+}
+
+const defaultParameters = [parameters.min, parameters.max, parameters.cacheTime] as const
+
+const imageEndpointDefaultParameters = [
+  ...defaultParameters,
+  parameters.width,
+  parameters.height,
+  parameters.showUpdatedDate,
+  parameters.imageFormat,
+  parameters.font,
+  parameters.fontColor,
+  parameters.bgColor
+] as const
 
 const responses = {
   invalidParameters: {
     description: 'Invalid parameters',
     schema: {
-      $ref: '#/definitions/ErrorResponse'
+      type: 'object',
+      properties: {
+        success: {
+          type: 'boolean'
+        },
+        error: {
+          type: 'string'
+        }
+      }
     }
   }
 } as const
+
+const numberJsonSchema: SwaggerObject<RandomNumberJsonResponse> = {
+  type: 'object',
+  properties: {
+    success: {
+      type: 'boolean'
+    },
+    number: {
+      type: 'number'
+    },
+    updatedDate: {
+      type: 'string'
+    },
+    cacheExpires: {
+      type: 'string'
+    }
+  }
+}
+
+const listItemJsonSchema: SwaggerObject<RandomListItemJsonResponse> = {
+  type: 'object',
+  properties: {
+    success: {
+      type: 'boolean'
+    },
+    item: {
+      type: 'string'
+    },
+    updatedDate: {
+      type: 'string'
+    },
+    cacheExpires: {
+      type: 'string'
+    }
+  }
+}
+
+const listOrderJsonSchema: SwaggerObject<RandomListOrderJsonResponse> = {
+  type: 'object',
+  properties: {
+    success: {
+      type: 'boolean'
+    },
+    items: {
+      type: 'array',
+      items: {
+        type: 'string'
+      }
+    },
+    updatedDate: {
+      type: 'string'
+    },
+    cacheExpires: {
+      type: 'string'
+    }
+  }
+}
 
 // TODO: strongly type the config
 export default {
@@ -104,89 +257,60 @@ export default {
   basePath: '/',
   schemes: ['https'],
   paths: {
-    '/json': {
+    '/number/json': {
       get: {
         summary: 'Get random number in json',
         description: 'Get random number in json',
-        operationId: 'getJson',
+        operationId: 'getNumberJson',
         produces: ['application/json'],
-        parameters: [parameters.min, parameters.max],
+        parameters: [...defaultParameters],
         responses: {
           200: {
-            description: 'Successfully generated image'
+            description: 'Successfully generated json',
+            schema: numberJsonSchema
           },
           400: responses.invalidParameters
         }
       }
     },
-    '/image': {
+    '/number/image': {
       get: {
         summary: 'Get random number as an image',
         description: 'Get random number as an image',
-        operationId: 'getImage',
+        operationId: 'getNumberImage',
         produces: ['image/svg+xml', 'image/png', 'image/jpeg'],
-        parameters: [
-          parameters.min,
-          parameters.max,
-          parameters.width,
-          parameters.height,
-          parameters.showUpdatedDate,
-          parameters.imageFormat,
-          parameters.font,
-          parameters.fontColor,
-          parameters.bgColor
-        ],
+        parameters: [...imageEndpointDefaultParameters],
         responses: {
           200: {
-            description: 'Successfully generated random number',
-            schema: {
-              type: 'object',
-              properties: {
-                number: {
-                  type: 'integer'
-                },
-                success: {
-                  type: 'boolean'
-                },
-                updatedDate: {
-                  type: 'string'
-                }
-              }
-            }
+            description: 'Successfully generated random number image'
           },
-          400: {
-            description: 'Invalid parameters',
-            schema: {
-              $ref: '#/definitions/ErrorResponse'
-            }
-          }
+          400: responses.invalidParameters
         }
       }
     },
-    '/imageFromList': {
+    '/listItem/json': {
+      get: {
+        summary: 'Get random list item in json',
+        description: 'Get random list item in json',
+        operationId: 'getListItemJson',
+        produces: ['application/json'],
+        parameters: [...defaultParameters, parameters.items],
+        responses: {
+          200: {
+            description: 'Successfully generated json',
+            schema: listItemJsonSchema
+          },
+          400: responses.invalidParameters
+        }
+      }
+    },
+    '/listItem/image': {
       get: {
         summary: 'Get random item from a list as an image',
         description: 'Get random item from a list as an image',
-        operationId: 'getImageFromList',
+        operationId: 'getListItemImage',
         produces: ['image/svg+xml', 'image/png', 'image/jpeg'],
-        parameters: [
-          {
-            name: 'options',
-            in: 'query',
-            required: true,
-            type: 'array',
-            items: {
-              type: 'string'
-            }
-          },
-          parameters.width,
-          parameters.height,
-          parameters.showUpdatedDate,
-          parameters.imageFormat,
-          parameters.font,
-          parameters.fontColor,
-          parameters.bgColor
-        ],
+        parameters: [...imageEndpointDefaultParameters, parameters.items],
         responses: {
           200: {
             description: 'Successfully generated image'
@@ -194,17 +318,35 @@ export default {
           400: responses.invalidParameters
         }
       }
-    }
-  },
-  definitions: {
-    ErrorResponse: {
-      type: 'object',
-      properties: {
-        success: {
-          type: 'boolean'
-        },
-        error: {
-          type: 'string'
+    },
+    '/listOrder/json': {
+      get: {
+        summary: 'Get random list item in json',
+        description: 'Get random list order in json',
+        operationId: 'getListOrderJson',
+        produces: ['application/json'],
+        parameters: [...defaultParameters, parameters.items],
+        responses: {
+          200: {
+            description: 'Successfully generated json',
+            schema: listOrderJsonSchema
+          },
+          400: responses.invalidParameters
+        }
+      }
+    },
+    '/listOrder/image': {
+      get: {
+        summary: 'Get random list order as an image',
+        description: 'Get random list order as an image',
+        operationId: 'getListOrderImage',
+        produces: ['image/svg+xml', 'image/png', 'image/jpeg'],
+        parameters: [...imageEndpointDefaultParameters, parameters.items, parameters.delimiter],
+        responses: {
+          200: {
+            description: 'Successfully generated image'
+          },
+          400: responses.invalidParameters
         }
       }
     }
