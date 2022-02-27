@@ -2,8 +2,9 @@ import express from 'express'
 import { DateTime } from 'luxon'
 import { generateImage } from '../modules/image'
 import { generateRandomNumber } from '../modules/randomNumberGenerator'
-import { RandomNumberJsonResponse } from '../types'
+import { RandomNumberJsonResponse, SupportedFormat } from '../types'
 import asyncRouteHandler from '../utils/asyncRouteHandler'
+import { formatFromContentTypeHeader } from '../utils/headers'
 import { parseQueryParams } from '../utils/queryParsers'
 
 const getJson = (min: number, max: number, req: express.Request): RandomNumberJsonResponse =>
@@ -16,42 +17,35 @@ const getJson = (min: number, max: number, req: express.Request): RandomNumberJs
 
 const router = express.Router()
 
-router.get('/', (req, res) => {
-  res.redirect(`${req.baseUrl}/image`)
-})
-
 router.get(
-  '/json',
+  '/',
   asyncRouteHandler(async (req, res) => {
-    const { min, max } = parseQueryParams(req.query, ['min', 'max'])
-    const json = getJson(min, max, req)
-    req.session.randomNumberObject = json
-    res.json(json)
-  })
-)
-
-router.get(
-  '/image',
-  asyncRouteHandler(async (req, res) => {
-    const { min, max, ...imageParams } = parseQueryParams(req.query, [
+    const { min, max, format, ...imageParams } = parseQueryParams(req.query, [
       'min',
       'max',
       'showUpdatedDate',
       'width',
       'height',
       'font',
-      'imageFormat',
+      'format',
       'fontColor',
       'bgColor'
     ])
+    const formatFromHeader = formatFromContentTypeHeader(req.header('content-type'))
+    const finalFormat = formatFromHeader || format
     const json = getJson(min, max, req)
+    req.session.randomNumberObject = json
+    if (finalFormat === SupportedFormat.Json) {
+      res.json(json)
+      return
+    }
     const buffer = await generateImage({
       ...imageParams,
       updatedDate: json.updatedDate,
-      item: json.number
+      item: json.number,
+      format: finalFormat
     })
-    res.contentType(imageParams.imageFormat)
-    req.session.randomNumberObject = json
+    res.contentType(finalFormat)
     res.send(buffer)
   })
 )

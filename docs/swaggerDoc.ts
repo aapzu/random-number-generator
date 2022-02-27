@@ -5,7 +5,7 @@ import {
   RandomListOrderJsonResponse,
   RandomNumberJsonResponse,
   SupportedFont,
-  SupportedImageFormat
+  SupportedFormat
 } from '../src/types'
 import { QueryParams } from '../src/utils/queryParsers'
 
@@ -92,14 +92,14 @@ const parameters: QueryParameters = {
     type: 'boolean',
     default: false
   },
-  imageFormat: {
-    name: 'imageFormat',
+  format: {
+    name: 'format',
     in: 'query',
-    description: 'Format of the returned image',
+    description: 'Format of the returned payload',
     required: false,
     type: 'string',
-    enum: Object.values(SupportedImageFormat),
-    default: SupportedImageFormat.Jpeg
+    enum: Object.values(SupportedFormat),
+    default: SupportedFormat.Jpeg
   },
   font: {
     name: 'font',
@@ -154,14 +154,13 @@ const parameters: QueryParameters = {
   }
 }
 
-const defaultParameters = [parameters.min, parameters.max, parameters.cacheTime] as const
+const defaultParameters = [parameters.cacheTime] as const
 
 const imageEndpointDefaultParameters = [
-  ...defaultParameters,
   parameters.width,
   parameters.height,
   parameters.showUpdatedDate,
-  parameters.imageFormat,
+  parameters.format,
   parameters.font,
   parameters.fontColor,
   parameters.bgColor
@@ -243,7 +242,7 @@ const listOrderJsonSchema: SwaggerObject<RandomListOrderJsonResponse> = {
 
 // TODO: strongly type the config
 export default {
-  swagger: '2.0',
+  openapi: '3.0.0',
   info: {
     description: pjson.description,
     version: pjson.version,
@@ -257,94 +256,116 @@ export default {
   basePath: '/',
   schemes: ['https'],
   paths: {
-    '/number/json': {
+    '/number': {
       get: {
-        summary: 'Get random number in json',
+        summary: 'Get a random number in json',
         description: 'Get random number in json',
         operationId: 'getNumberJson',
-        produces: ['application/json'],
-        parameters: [...defaultParameters],
+        produces: ['application/json', 'image/svg+xml', 'image/png', 'image/jpeg'],
+        parameters: [parameters.min, parameters.max, ...defaultParameters],
         responses: {
           200: {
-            description: 'Successfully generated json',
-            schema: numberJsonSchema
+            description: 'Successfully generated random number image',
+            content: {
+              'application/json': {
+                schema: numberJsonSchema
+              },
+              'image/jpeg': {
+                schema: {
+                  type: 'string',
+                  format: 'binary'
+                }
+              },
+              'image/png': {
+                schema: {
+                  type: 'string',
+                  format: 'binary'
+                }
+              },
+              'image/svg': {
+                schema: {
+                  type: 'string',
+                  format: ''
+                }
+              }
+            }
           },
           400: responses.invalidParameters
         }
       }
     },
-    '/number/image': {
-      get: {
-        summary: 'Get random number as an image',
-        description: 'Get random number as an image',
-        operationId: 'getNumberImage',
-        produces: ['image/svg+xml', 'image/png', 'image/jpeg'],
-        parameters: [...imageEndpointDefaultParameters],
-        responses: {
-          200: {
-            description: 'Successfully generated random number image'
-          },
-          400: responses.invalidParameters
-        }
-      }
-    },
-    '/listItem/json': {
-      get: {
-        summary: 'Get random list item in json',
-        description: 'Get random list item in json',
-        operationId: 'getListItemJson',
-        produces: ['application/json'],
-        parameters: [...defaultParameters, parameters.items],
-        responses: {
-          200: {
-            description: 'Successfully generated json',
-            schema: listItemJsonSchema
-          },
-          400: responses.invalidParameters
-        }
-      }
-    },
-    '/listItem/image': {
+    '/listItem': {
       get: {
         summary: 'Get random item from a list as an image',
         description: 'Get random item from a list as an image',
         operationId: 'getListItemImage',
-        produces: ['image/svg+xml', 'image/png', 'image/jpeg'],
+        produces: ['application/json', 'image/svg+xml', 'image/png', 'image/jpeg'],
         parameters: [...imageEndpointDefaultParameters, parameters.items],
         responses: {
           200: {
-            description: 'Successfully generated image'
+            description: 'Successfully generated image',
+            produces: ['image/svg', 'image/png', 'image/jpeg', 'application/json'],
+            content: {
+              'application/json': {
+                schema: listItemJsonSchema
+              },
+              'image/jpeg': {
+                schema: {
+                  type: 'string',
+                  format: 'binary'
+                }
+              },
+              'image/png': {
+                schema: {
+                  type: 'string',
+                  format: 'binary'
+                }
+              },
+              'image/svg': {
+                schema: {
+                  type: 'string',
+                  format: ''
+                }
+              }
+            }
           },
           400: responses.invalidParameters
         }
       }
     },
-    '/listOrder/json': {
+    '/listOrder': {
       get: {
-        summary: 'Get random list item in json',
-        description: 'Get random list order in json',
-        operationId: 'getListOrderJson',
-        produces: ['application/json'],
-        parameters: [...defaultParameters, parameters.items],
-        responses: {
-          200: {
-            description: 'Successfully generated json',
-            schema: listOrderJsonSchema
-          },
-          400: responses.invalidParameters
-        }
-      }
-    },
-    '/listOrder/image': {
-      get: {
-        summary: 'Get random list order as an image',
-        description: 'Get random list order as an image',
-        operationId: 'getListOrderImage',
-        produces: ['image/svg+xml', 'image/png', 'image/jpeg'],
+        summary: 'Get random list order',
+        description: 'Get random list order',
+        operationId: 'getListOrder',
+        produces: ['application/json', 'image/svg+xml', 'image/png', 'image/jpeg'],
         parameters: [...imageEndpointDefaultParameters, parameters.items, parameters.delimiter],
         responses: {
           200: {
-            description: 'Successfully generated image'
+            description: 'Successfully generated random list order',
+            content: {
+              'application/json': {
+                schema: listOrderJsonSchema
+              },
+              'image/jpeg': {
+                schema: {
+                  type: 'string',
+                  format: 'binary'
+                }
+              },
+              'image/png': {
+                schema: {
+                  type: 'string',
+                  format: 'binary'
+                }
+              },
+              'image/svg': {
+                schema: {
+                  type: 'string',
+                  format: ''
+                }
+              }
+            }
           },
           400: responses.invalidParameters
         }

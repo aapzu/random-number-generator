@@ -21,10 +21,11 @@ export type RandomListOrderJsonResponse = BaseJsonResponse & {
   items: string[]
 }
 
-export enum SupportedImageFormat {
+export enum SupportedFormat {
   Svg = 'svg',
   Png = 'png',
-  Jpeg = 'jpeg'
+  Jpeg = 'jpeg',
+  Json = 'json'
 }
 
 export enum SupportedFont {

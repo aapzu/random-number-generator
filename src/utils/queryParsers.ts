@@ -1,6 +1,6 @@
 import { Query } from 'express-serve-static-core'
 import parse from 'parse-duration'
-import { SupportedFont, SupportedImageFormat } from '../types'
+import { SupportedFont, SupportedFormat } from '../types'
 import { ApiError } from './ApiError'
 import { pick } from 'lodash'
 
@@ -101,7 +101,7 @@ export type QueryParams = {
   height?: number
   showUpdatedDate?: boolean
   font?: SupportedFont
-  imageFormat?: SupportedImageFormat
+  format?: SupportedFormat
   fontColor?: string
   bgColor?: string
   items?: Array<string>
@@ -121,9 +121,7 @@ export const parseQueryParams = <K extends (keyof QueryParams)[]>(
   const height = test('height') && (parseNumber(query.height, 'height') || width)
   const showUpdatedDate = test('showUpdatedDate') && parseBoolean(query.showUpdatedDate, 'showUpdatedDate')
   const clearCache = test('clearCache') && parseBoolean(query.clearCache, 'clearCache')
-  const imageFormat =
-    test('imageFormat') &&
-    (parseEnum(query.imageFormat, SupportedImageFormat, 'imageFormat') || SupportedImageFormat.Png)
+  const format = test('format') && (parseEnum(query.format, SupportedFormat, 'format') || SupportedFormat.Png)
   const font = test('font') && (parseEnum(query.font, SupportedFont, 'font') || SupportedFont.Roboto)
   const fontColor = test('fontColor') && (parseString(query.fontColor, 'fontColor') || '#333')
   const bgColor = test('bgColor') && (parseString(query.bgColor, 'bgColor') || '#fff')
@@ -139,7 +137,7 @@ export const parseQueryParams = <K extends (keyof QueryParams)[]>(
       height,
       showUpdatedDate,
       font,
-      imageFormat,
+      format,
       fontColor,
       bgColor,
       items,

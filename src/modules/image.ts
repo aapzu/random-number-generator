@@ -1,6 +1,6 @@
 import ejs from 'ejs'
 import path from 'path'
-import { SupportedImageFormat } from '../types'
+import { SupportedFormat } from '../types'
 import { ApiError } from '../utils/ApiError'
 import { optimizeSvg, svgToJpg, svgToPng } from '../utils/convertImage'
 
@@ -13,20 +13,20 @@ type GenerateImageOptions = {
   font: string
   item: string | number
   updatedDate: string
-  imageFormat: SupportedImageFormat
+  format: SupportedFormat
   fontColor: string
   bgColor: string
 }
 
-export const generateImage = async ({ imageFormat, ...opts }: GenerateImageOptions): Promise<Buffer> => {
+export const generateImage = async ({ format, ...opts }: GenerateImageOptions): Promise<Buffer> => {
   const svgString = await ejs.renderFile(numberSvgTemplatePath, { ...opts }, {})
-  if (imageFormat === SupportedImageFormat.Png) {
+  if (format === SupportedFormat.Png) {
     return svgToPng(svgString, opts.bgColor)
-  } else if (imageFormat === SupportedImageFormat.Jpeg) {
+  } else if (format === SupportedFormat.Jpeg) {
     return await svgToJpg(svgString, opts.bgColor)
-  } else if (imageFormat === SupportedImageFormat.Svg) {
+  } else if (format === SupportedFormat.Svg) {
     return Buffer.from(await optimizeSvg(svgString), 'utf-8')
   } else {
-    throw new ApiError(`Invalid image format: ${imageFormat}`, 400)
+    throw new ApiError(`Invalid image format: ${format}`, 400)
   }
 }
