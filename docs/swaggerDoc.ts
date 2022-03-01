@@ -262,7 +262,7 @@ export default {
         description: 'Get random number in json',
         operationId: 'getNumberJson',
         produces: ['application/json', 'image/svg+xml', 'image/png', 'image/jpeg'],
-        parameters: [parameters.min, parameters.max, ...defaultParameters],
+        parameters: [parameters.min, parameters.max, ...defaultParameters, ...imageEndpointDefaultParameters],
         responses: {
           200: {
             description: 'Successfully generated random number image',
@@ -300,7 +300,7 @@ export default {
         description: 'Get random item from a list as an image',
         operationId: 'getListItemImage',
         produces: ['application/json', 'image/svg+xml', 'image/png', 'image/jpeg'],
-        parameters: [...imageEndpointDefaultParameters, parameters.items],
+        parameters: [...defaultParameters, ...imageEndpointDefaultParameters, parameters.items],
         responses: {
           200: {
             description: 'Successfully generated image',
@@ -339,7 +339,7 @@ export default {
         description: 'Get random list order',
         operationId: 'getListOrder',
         produces: ['application/json', 'image/svg+xml', 'image/png', 'image/jpeg'],
-        parameters: [...imageEndpointDefaultParameters, parameters.items, parameters.delimiter],
+        parameters: [...defaultParameters, ...imageEndpointDefaultParameters, parameters.items, parameters.delimiter],
         responses: {
           200: {
             description: 'Successfully generated random list order',
