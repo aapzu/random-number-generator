@@ -3,6 +3,8 @@ Generate random images through an api
 
 [API docs](https://random-number-generator-aapzu.vercel.app)
 
+Demos: [json](https://random-number-generator-aapzu.vercel.app/number?min=0&max=1000&format=json), [jpeg](https://random-number-generator-aapzu.vercel.app/number?min=0&max=1000&format=jpeg)
+
 ## Features
 The example images update when you refresh the browser
 
