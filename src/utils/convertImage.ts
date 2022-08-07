@@ -1,4 +1,4 @@
-import { render } from '@resvg/resvg-js'
+import { Resvg } from '@resvg/resvg-js'
 import { optimize } from 'svgo'
 import jimp from 'jimp'
 import path from 'path'
@@ -14,7 +14,7 @@ export const optimizeSvg = async (svgString: string) => {
 
 export const svgToPng = async (svgString: string, bgColor: string) => {
   const optimizedSvg = await optimizeSvg(svgString)
-  return render(optimizedSvg, {
+  const resvg = new Resvg(optimizedSvg, {
     fitTo: {
       mode: 'original'
     },
@@ -26,6 +26,7 @@ export const svgToPng = async (svgString: string, bgColor: string) => {
     background: bgColor,
     dpi: 1000
   })
+  return resvg.render().asPng()
 }
 
 export const pngToJpg = async (source: Buffer): Promise<Buffer> => {
