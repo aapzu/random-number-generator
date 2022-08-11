@@ -44,7 +44,7 @@ type QueryParameters = {
   >
 }
 
-const parameters: QueryParameters = {
+export const parameters: QueryParameters = {
   min: {
     name: 'min',
     in: 'query',
@@ -154,9 +154,9 @@ const parameters: QueryParameters = {
   }
 }
 
-const defaultParameters = [parameters.cacheTime] as const
+export const defaultParameters = [parameters.cacheTime] as const
 
-const imageEndpointDefaultParameters = [
+export const imageEndpointDefaultParameters = [
   parameters.width,
   parameters.height,
   parameters.showUpdatedDate,
@@ -166,7 +166,7 @@ const imageEndpointDefaultParameters = [
   parameters.bgColor
 ] as const
 
-const responses = {
+export const responses = {
   invalidParameters: {
     description: 'Invalid parameters',
     schema: {
@@ -183,7 +183,7 @@ const responses = {
   }
 } as const
 
-const numberJsonSchema: SwaggerObject<RandomNumberJsonResponse> = {
+export const numberJsonSchema: SwaggerObject<RandomNumberJsonResponse> = {
   type: 'object',
   properties: {
     success: {

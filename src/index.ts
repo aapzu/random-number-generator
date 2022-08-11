@@ -1,63 +1,87 @@
-import express, { ErrorRequestHandler } from 'express'
-import path from 'path'
-import swaggerUi from 'swagger-ui-express'
-import cors from 'cors'
-import cookieSession from 'cookie-session'
+import dotenv from 'dotenv'
+dotenv.config()
+
+import path from 'node:path'
+import Fastify, { FastifyRequest } from 'fastify'
+import cors from '@fastify/cors'
+import fastifyStatic from '@fastify/static'
+import fastifySecureSession from '@fastify/secure-session'
+import fastifySwagger from '@fastify/swagger'
+// import swaggerUi from 'swagger-ui-express'
 import parse from 'parse-duration'
-import morgan from 'morgan'
+import numberRoute from './routes/numberRoute'
 import listItemRoute from './routes/listItemRoute'
 import listOrderRoute from './routes/listOrderRoute'
-import numberRoute from './routes/numberRoute'
-import { ApiError } from './utils/ApiError'
+// import { ApiError } from './utils/ApiError'
 import { parseQueryParams } from './utils/queryParsers'
 
 import swaggerDocs from '../docs/swaggerDoc'
 
-const app = express()
+const fastify = Fastify({
+  logger: process.env.VERBOSE && process.env.VERBOSE !== 'false'
+})
 
-app.set('port', process.env.PORT || 3333)
-app.set('query parser', 'simple')
-app.use(cors())
-app.use(morgan('tiny'))
-app.use(express.static(path.resolve(__dirname, '../public')))
+fastify.register(cors)
 
-app.use(
-  cookieSession({
-    name: 'random-number-generator-session',
-    keys: [process.env.SESSION_KEY_1, process.env.SESSION_KEY_2],
+const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3333
+
+fastify.register(fastifyStatic, {
+  root: path.resolve(__dirname, '../public')
+})
+
+fastify.register(fastifySecureSession, {
+  cookieName: 'random-number-generator-session',
+  secret: process.env.COOKIE_SECRET,
+  salt: process.env.COOKIE_SALT,
+  cookie: {
+    path: '/',
     maxAge: 24 * 60 * 60 * 1000
-  })
-)
-
-app.use((req, _res, next) => {
-  const now = Date.now()
-  const { clearCache, cacheTime } = parseQueryParams(req.query, ['clearCache', 'cacheTime'])
-  if (req.session?.expires === undefined || req.session.expires <= now || clearCache) {
-    req.session.randomNumberObject = undefined
-    req.session.randomListItemObject = undefined
-    req.session.randomListOrderObject = undefined
-    const maxAge = cacheTime && parse(cacheTime)
-    req.session.expires = maxAge !== undefined ? Date.now() + maxAge : undefined
   }
-  next()
 })
 
-app.use('/number', numberRoute)
-app.use('/listItem', listItemRoute)
-app.use('/listOrder', listOrderRoute)
-
-app.get('/*', swaggerUi.serve, swaggerUi.setup(swaggerDocs))
-
-app.use(((err: ApiError | Error, _req, res, _next) => {
-  const status = 'status' in err ? err.status : 500
-  res.status(status).json({
-    success: false,
-    error: err.message
-  })
-}) as ErrorRequestHandler)
-
-app.listen(app.get('port'), () => {
-  console.log(`App listening on port ${app.get('port')}`)
+fastify.addHook('preHandler', async (request: FastifyRequest<{ Querystring: Record<string, string | string[]> }>) => {
+  const now = Date.now()
+  const { clearCache, cacheTime } = parseQueryParams(request.query, ['clearCache', 'cacheTime'])
+  if (request.session?.expires === undefined || request.session.expires <= now || clearCache) {
+    request.session.randomNumberObject = undefined
+    request.session.randomListItemObject = undefined
+    request.session.randomListOrderObject = undefined
+    const maxAge = cacheTime && parse(cacheTime)
+    request.session.expires = maxAge !== undefined ? Date.now() + maxAge : undefined
+  }
 })
 
-export default app
+fastify.register(numberRoute, { prefix: '/number' })
+fastify.register(listItemRoute, { prefix: '/listItem' })
+fastify.register(listOrderRoute, { prefix: '/listOrder' })
+
+fastify.register(fastifySwagger, {
+  routePrefix: '/documentation',
+  swagger: swaggerDocs,
+  uiConfig: {
+    docExpansion: 'full',
+    deepLinking: false
+  },
+  staticCSP: true,
+  exposeRoute: true
+})
+
+// app.get('/*', swaggerUi.serve, swaggerUi.setup(swaggerDocs))
+
+// app.use(((err: ApiError | Error, _req, res, _next) => {
+//   const status = 'status' in err ? err.status : 500
+//   res.status(status).json({
+//     success: false,
+//     error: err.message
+//   })
+// }) as ErrorRequestHandler)
+
+fastify.listen({ port }, (err, address) => {
+  if (err) {
+    fastify.log.error(err)
+    process.exit(1)
+  }
+  console.log(`App started in ${address}`)
+})
+
+export default fastify

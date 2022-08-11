@@ -1,13 +1,12 @@
-import express from 'express'
+import { FastifyPluginAsync, FastifyRequest } from 'fastify'
 import { DateTime } from 'luxon'
 import { generateImage } from '../modules/image'
 import { generateRandomNumber } from '../modules/randomNumberGenerator'
 import { RandomListItemJsonResponse, SupportedFormat } from '../types'
-import asyncRouteHandler from '../utils/asyncRouteHandler'
-import { formatFromContentTypeHeader } from '../utils/headers'
+import { contentTypeHeaderFromFormat, formatFromContentTypeHeader } from '../utils/headers'
 import { parseQueryParams } from '../utils/queryParsers'
 
-const getJson = (items: string[], req: express.Request): RandomListItemJsonResponse =>
+const getJson = (items: string[], req: FastifyRequest): RandomListItemJsonResponse =>
   req.session.randomListItemObject || {
     success: true,
     item: items[generateRandomNumber(0, items.length - 1)],
@@ -15,12 +14,9 @@ const getJson = (items: string[], req: express.Request): RandomListItemJsonRespo
     cacheExpires: req.session.expires && DateTime.fromMillis(req.session.expires).toFormat('dd.MM.yyyy HH:mm:ss')
   }
 
-const router = express.Router()
-
-router.get(
-  '/',
-  asyncRouteHandler(async (req, res) => {
-    const { items, format, ...imageParams } = parseQueryParams(req.query, [
+const router: FastifyPluginAsync = async (fastify) => {
+  fastify.get('/', async (request: FastifyRequest<{ Querystring: Record<string, string | string[]> }>, reply) => {
+    const { items, format, ...imageParams } = parseQueryParams(request.query, [
       'items',
       'showUpdatedDate',
       'width',
@@ -30,19 +26,19 @@ router.get(
       'fontColor',
       'bgColor'
     ])
-    const formatFromHeader = formatFromContentTypeHeader(req.header('content-type'))
-    const json = getJson(items, req)
+    const formatFromHeader = formatFromContentTypeHeader(request.headers['content-type'])
+    const json = getJson(items, request)
     const finalFormat = formatFromHeader || format
-    req.session.randomListItemObject = json
+    request.session.randomListItemObject = json
     if (finalFormat === SupportedFormat.Json) {
-      res.json(json)
+      reply.send(json)
       return
     }
     const buffer = await generateImage({ ...imageParams, ...json, format: finalFormat })
-    res.contentType(finalFormat)
-    req.session.randomListItemObject = json
-    res.send(buffer)
+    reply.header('Content-Type', contentTypeHeaderFromFormat(finalFormat))
+    request.session.randomListItemObject = json
+    reply.send(buffer)
   })
-)
+}
 
 export default router

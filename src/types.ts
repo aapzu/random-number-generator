@@ -22,10 +22,10 @@ export type RandomListOrderJsonResponse = BaseJsonResponse & {
 }
 
 export enum SupportedFormat {
-  Svg = 'svg',
-  Png = 'png',
-  Jpeg = 'jpeg',
-  Json = 'json'
+  Svg = 'image/svg',
+  Png = 'image/png',
+  Jpeg = 'image/jpeg',
+  Json = 'application/json'
 }
 
 export enum SupportedFont {

@@ -1,12 +1,11 @@
-import express from 'express'
+import { FastifyPluginAsync, FastifyRequest } from 'fastify'
 import { DateTime } from 'luxon'
 import { generateImage } from '../modules/image'
 import { RandomListOrderJsonResponse, SupportedFormat } from '../types'
-import asyncRouteHandler from '../utils/asyncRouteHandler'
-import { formatFromContentTypeHeader } from '../utils/headers'
+import { contentTypeHeaderFromFormat, formatFromContentTypeHeader } from '../utils/headers'
 import { parseQueryParams } from '../utils/queryParsers'
 
-const getJson = (items: string[], req: express.Request): RandomListOrderJsonResponse =>
+const getJson = (items: string[], req: FastifyRequest): RandomListOrderJsonResponse =>
   req.session.randomListOrderObject || {
     success: true,
     items: items.sort(() => (Math.random() < 0.5 ? -1 : 1)),
@@ -14,12 +13,9 @@ const getJson = (items: string[], req: express.Request): RandomListOrderJsonResp
     cacheExpires: req.session.expires && DateTime.fromMillis(req.session.expires).toFormat('dd.MM.yyyy HH:mm:ss')
   }
 
-const router = express.Router()
-
-router.get(
-  '/',
-  asyncRouteHandler(async (req, res) => {
-    const { items, delimiter, format, ...imageParams } = parseQueryParams(req.query, [
+const router: FastifyPluginAsync = async (fastify) => {
+  fastify.get('/', async (request: FastifyRequest<{ Querystring: Record<string, string | string[]> }>, reply) => {
+    const { items, delimiter, format, ...imageParams } = parseQueryParams(request.query, [
       'delimiter',
       'items',
       'showUpdatedDate',
@@ -30,12 +26,12 @@ router.get(
       'fontColor',
       'bgColor'
     ])
-    const formatFromHeader = formatFromContentTypeHeader(req.header('content-type'))
-    const json = getJson(items, req)
+    const formatFromHeader = formatFromContentTypeHeader(request.headers['content-type'])
+    const json = getJson(items, request)
     const finalFormat = formatFromHeader || format
-    req.session.randomListOrderObject = json
+    request.session.randomListOrderObject = json
     if (finalFormat === SupportedFormat.Json) {
-      res.json(json)
+      reply.send(json)
       return
     }
     const buffer = await generateImage({
@@ -44,9 +40,9 @@ router.get(
       item: items.join(delimiter),
       format: finalFormat
     })
-    res.contentType(finalFormat)
-    res.send(buffer)
+    reply.header('Content-Type', contentTypeHeaderFromFormat(finalFormat))
+    reply.send(buffer)
   })
-)
+}
 
 export default router

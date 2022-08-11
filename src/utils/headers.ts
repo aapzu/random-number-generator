@@ -8,3 +8,12 @@ export const formatFromContentTypeHeader = (contentType: string): SupportedForma
     'image/svg': SupportedFormat.Svg
   }[contentType]
 }
+
+export const contentTypeHeaderFromFormat = (format: SupportedFormat): string => {
+  return {
+    [SupportedFormat.Json]: 'application/json',
+    [SupportedFormat.Png]: 'image/png',
+    [SupportedFormat.Jpeg]: 'image/jpeg',
+    [SupportedFormat.Svg]: 'image/svg'
+  }[format]
+}
