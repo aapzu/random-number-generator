@@ -4,13 +4,12 @@
   "description": "This is an app to create and embed random data",
   "main": "api/index.ts",
   "scripts": {
-    "dev": "nodemon",
-    "deploy": "vercel deploy --prod"
+    "dev": "nodemon"
   },
   "keywords": [],
   "author": {
     "name": "Aapeli Haanpuu",
-    "email": "aapeli.haanpuu@iki.fi"
+    "email": "aapzu@iki.fi"
   },
   "license": "MIT",
   "dependencies": {
@@ -49,7 +48,7 @@
     "vercel": "^27.3.7"
   },
   "engines": {
-    "node": "^16",
-    "npm": "^8"
+    "node": "^18",
+    "pnpm": "^8"
   }
 }
