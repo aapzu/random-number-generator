@@ -46,7 +46,7 @@ app.use('/number', numberRoute)
 app.use('/listItem', listItemRoute)
 app.use('/listOrder', listOrderRoute)
 
-app.get('/*', swaggerUi.serve, swaggerUi.setup(swaggerDocs))
+app.use('/', swaggerUi.serve, swaggerUi.setup(swaggerDocs))
 
 app.use(((err: ApiError | Error, _req, res, _next) => {
   const status = 'status' in err ? err.status : 500
