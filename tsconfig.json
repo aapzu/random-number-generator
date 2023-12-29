@@ -9,11 +9,11 @@
     "sourceMap": true,
     "outDir": "dist",
     "baseUrl": ".",
-    "paths": {
-      "*": ["node_modules/*"]
-    },
     "noUnusedLocals": true,
     "noUnusedParameters": true
   },
-  "include": ["src/common.d.ts", "src/**/*", "api/**/*"]
+  "include": ["src/common.d.ts", "src/**/*", "api/**/*"],
+  "ts-node": {
+    "swc": true
+  }
 }
