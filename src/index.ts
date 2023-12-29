@@ -20,7 +20,6 @@ app.set('query parser', 'simple')
 app.use(cors())
 app.use(morgan('tiny'))
 app.use(express.static(path.resolve(__dirname, '../public')))
-app.use('/docs', express.static(require.resolve('swagger-ui-dist')))
 
 app.use(
   cookieSession({
